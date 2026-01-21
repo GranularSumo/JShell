@@ -4,3 +4,7 @@ build
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+.settings
+app/bin
+.project
+app/.classpath

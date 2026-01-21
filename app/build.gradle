@@ -34,10 +34,22 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.example.App'
+    mainClass = 'org.example.Shell'
+}
+
+jar {
+    archiveFileName = 'jshell.jar'
+    destinationDirectory = file('/tmp/jshell-build')
+    manifest {
+        attributes 'Main-Class': 'org.example.Shell'
+    }
 }
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
+tasks.named('run') {
+    standardInput = System.in
+  }
