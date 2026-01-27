@@ -1,6 +1,7 @@
 package org.example.Lexer;
 
 import org.example.Lexer.Token.TokenType;
+import org.example.RedirectType;
 
 public final class RedirectState implements LexerState {
 
@@ -11,12 +12,14 @@ public final class RedirectState implements LexerState {
 
   @Override
   public LexerState processChar(char c, LexerContext context) {
-    if (c == '>') {
+    String potentialRedirect = context.getCurrentTokenContent() + c;
+
+    if (RedirectType.isValidRedirectType(potentialRedirect)) {
       context.appendToToken(c);
-      context.saveTokenIfNotEmpty(TokenType.OP);
-      return UnquotedState.INSTANCE;
+      return this;
+    } else {
+      context.saveTokenIfNotEmpty(TokenType.REDIRECT);
     }
-    context.saveTokenIfNotEmpty(TokenType.OP);
 
     switch (c) {
       case ' ':
@@ -25,6 +28,13 @@ public final class RedirectState implements LexerState {
         return SingleQuotedState.INSTANCE;
       case '"':
         return DoubleQuotedState.INSTANCE;
+      case '<':
+        context.appendToToken(c);
+        context.saveTokenIfNotEmpty(TokenType.REDIRECT);
+        return UnquotedState.INSTANCE;
+      case '>':
+        context.appendToToken(c);
+        return this;
       default:
         context.appendToToken(c);
         return UnquotedState.INSTANCE;
@@ -33,7 +43,7 @@ public final class RedirectState implements LexerState {
 
   @Override
   public void finalise(LexerContext context) {
-    context.saveTokenIfNotEmpty(TokenType.OP);
+    context.saveTokenIfNotEmpty(TokenType.REDIRECT);
   }
 
 }

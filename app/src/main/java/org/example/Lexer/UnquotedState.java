@@ -1,6 +1,7 @@
 package org.example.Lexer;
 
 import org.example.Lexer.Token.TokenType;
+import org.example.RedirectType;
 
 public final class UnquotedState implements LexerState {
 
@@ -23,6 +24,11 @@ public final class UnquotedState implements LexerState {
         return DoubleQuotedState.INSTANCE;
       case '>':
         return checkRedirectPrefix(c, context);
+      case '<':
+        context.saveTokenIfNotEmpty(TokenType.WORD);
+        context.appendToToken(c);
+        context.saveTokenIfNotEmpty(TokenType.REDIRECT);
+        return this;
       case '\\':
         context.setNextCharEscaped(true);
         return this;
@@ -43,14 +49,13 @@ public final class UnquotedState implements LexerState {
   private LexerState checkRedirectPrefix(char c, LexerContext context) {
     String currentToken = context.getCurrentTokenContent();
 
-    boolean isValidRedirectPrefix = currentToken.isEmpty() ||
-        (currentToken.length() == 1 && (currentToken.charAt(0) == '1' ||
-            currentToken.charAt(0) == '2' ||
-            currentToken.charAt(0) == '&'));
+    boolean isValidRedirectPrefix = currentToken.isEmpty()
+        || (currentToken.length() == 1 && RedirectType.isRedirectPrefix(currentToken.charAt(0)));
 
     if (!isValidRedirectPrefix) {
       context.saveTokenIfNotEmpty(TokenType.WORD);
     }
+
     context.appendToToken(c);
     return RedirectState.INSTANCE;
   }

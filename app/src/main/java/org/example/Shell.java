@@ -39,7 +39,7 @@ public class Shell {
           continue;
         }
 
-        Parser.tokenize(input);
+        // Parser.tokenize(input);
       }
     } catch (IOException e) {
       ctx.err().println("I/O error: " + e.getMessage());
