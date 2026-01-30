@@ -1,35 +1,20 @@
 package org.example;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.util.EnumSet;
 
-import org.example.commands.Builtins;
 import org.example.evaluator.Evaluator;
-import org.example.evaluator.IoContext;
 
 public class Shell {
 
   private ShellContext ctx;
-  private Evaluator evaluator;
+  private final Evaluator evaluator;
 
-  public Shell(ShellContext ctx) {
+  public Shell(ShellContext ctx, Evaluator evaluator) {
     this.ctx = ctx;
-    evaluator = new Evaluator(ctx, new Builtins());
+    this.evaluator = evaluator;
   }
 
-  public static void main(String[] args) throws IOException {
-    BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-    PrintWriter out = new PrintWriter(System.out);
-    PrintWriter err = new PrintWriter(System.err);
-    IoContext stdIO = new IoContext(in, out, err, EnumSet.noneOf(IoContext.Resource.class));
-    Shell shell = new Shell(new ShellContext(stdIO));
-    shell.run();
-  }
-
-  private void run() {
+  public void run() {
     try {
       while (ctx.shouldContinue()) {
         prompt();
@@ -52,7 +37,7 @@ public class Shell {
 
   private void prompt() {
     ctx.out().print("\u001B[1;34m");
-    ctx.out().print(ctx.getCwd().toString() + " >> ");
+    ctx.out().print(ctx.getCwd().toString() + " $ ");
     ctx.out().print("\u001B[0m");
     ctx.out().flush();
   }

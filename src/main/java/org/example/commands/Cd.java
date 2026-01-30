@@ -26,7 +26,7 @@ public class Cd implements CommandInterface {
       }
     } else {
       shell.err().println("Too many arguments");
-      CommandResult.continueWith(1);
+      return CommandResult.continueWith(1);
     }
 
     Path path = shell.getCwd().resolve(target).normalize();

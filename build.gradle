@@ -34,14 +34,14 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.example.Shell'
+    mainClass = 'org.example.Main'
 }
 
 jar {
     archiveFileName = 'javashell.jar'
     destinationDirectory = file('/tmp/javashell-build')
     manifest {
-        attributes 'Main-Class': 'org.example.Shell'
+        attributes 'Main-Class': 'org.example.Main'
     }
 }
 

@@ -41,16 +41,16 @@ public class Evaluator {
     }
   }
 
-  public CommandResult executeBuiltin(Command cmd) throws IOException {
+  private CommandResult executeBuiltin(Command cmd) throws IOException {
     IoContext context = RedirectHandler.applyAllToIoContext(cmd.redirects(), ctx.stdio());
     try {
-      return builtins.get(cmd.commandName()).execute(cmd.args(), ctx.withIo(context));
+      return builtins.get(cmd.commandName()).execute(cmd.arguments(), ctx.withIo(context));
     } finally {
       context.closeResources();
     }
   }
 
-  public CommandResult executeExternal(Command cmd) throws IOException {
+  private CommandResult executeExternal(Command cmd) throws IOException {
     try {
       ProcessBuilder builder = new ProcessBuilder(cmd.args())
           .directory(new File(ctx.getCwd().toString()));
