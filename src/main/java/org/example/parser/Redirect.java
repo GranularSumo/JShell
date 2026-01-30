@@ -1,6 +1,6 @@
 package org.example.parser;
 
-public record Redirect(RedirectType type, Word target) {
+public record Redirect(RedirectType type, String target) {
   public Redirect {
     if (type == null || target == null) {
       throw new IllegalArgumentException("Redirect type and target cannot be null");

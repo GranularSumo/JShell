@@ -18,7 +18,7 @@ public class Builtins {
   }
 
   public boolean isBuiltin(String name) {
-    return builtins.keySet().contains(name);
+    return builtins.containsKey(name);
   }
 
   public CommandInterface get(String name) {

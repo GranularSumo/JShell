@@ -11,15 +11,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.example.evaluator.IoContext;
 import org.example.evaluator.RedirectHandler;
-import org.example.evaluator.IoContext.Owns;
+import org.example.evaluator.IoContext.Resource;
 import org.example.parser.Redirect;
 import org.example.parser.RedirectType;
-import org.example.parser.Word;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -47,21 +46,11 @@ class RedirectBuilderApplyAllTest {
         new BufferedReader(new InputStreamReader(System.in)),
         new PrintWriter(System.out),
         new PrintWriter(System.err),
-        Owns.NONE);
+        EnumSet.noneOf(Resource.class));
   }
 
   private Redirect createRedirect(RedirectType type, String filename) {
-    Word target = new Word(filename);
-    return new Redirect(type, target);
-  }
-
-  private List<Redirect> createRedirects(RedirectType... types) {
-    List<Redirect> redirects = new ArrayList<>();
-    for (int i = 0; i < types.length; i++) {
-      String filename = "file" + (i + 1) + ".txt";
-      redirects.add(createRedirect(types[i], tempDir.resolve(filename).toString()));
-    }
-    return redirects;
+    return new Redirect(type, filename);
   }
 
   // Test Case 1: Multiple Output Redirections

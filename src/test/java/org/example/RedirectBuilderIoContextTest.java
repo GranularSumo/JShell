@@ -12,14 +12,14 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.example.evaluator.IoContext;
 import org.example.evaluator.RedirectHandler;
-import org.example.evaluator.IoContext.Owns;
+import org.example.evaluator.IoContext.Resource;
 import org.example.parser.Redirect;
 import org.example.parser.RedirectType;
-import org.example.parser.Word;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -30,11 +30,10 @@ class RedirectBuilderIoContextTest {
 
   IoContext ctx = new IoContext(new BufferedReader(new InputStreamReader(System.in)), new PrintWriter(System.out),
       new PrintWriter(System.err),
-      Owns.NONE);
+      EnumSet.noneOf(Resource.class));
 
   private Redirect createRedirect(RedirectType type, String filename) {
-    Word target = new Word(filename);
-    return new Redirect(type, target);
+    return new Redirect(type, filename);
   }
 
   @Test
@@ -177,7 +176,7 @@ class RedirectBuilderIoContextTest {
 
     try {
       IoContext freshCtx = new IoContext(new BufferedReader(new InputStreamReader(System.in)),
-          new PrintWriter(System.out), new PrintWriter(System.err), Owns.NONE);
+          new PrintWriter(System.out), new PrintWriter(System.err), EnumSet.noneOf(Resource.class));
 
       Path outputFile = tempDir.resolve("output.txt");
       Redirect redirect = createRedirect(RedirectType.OUTPUT, outputFile.toString());
@@ -203,7 +202,7 @@ class RedirectBuilderIoContextTest {
 
     try {
       IoContext freshCtx = new IoContext(new BufferedReader(new InputStreamReader(System.in)),
-          new PrintWriter(System.out), new PrintWriter(System.err), Owns.NONE);
+          new PrintWriter(System.out), new PrintWriter(System.err), EnumSet.noneOf(Resource.class));
 
       Path outputFile = tempDir.resolve("output.txt");
       Redirect redirect = createRedirect(RedirectType.ERROR, outputFile.toString());
@@ -232,7 +231,7 @@ class RedirectBuilderIoContextTest {
 
     try {
       IoContext freshCtx = new IoContext(new BufferedReader(new InputStreamReader(System.in)),
-          new PrintWriter(System.out), new PrintWriter(System.err), Owns.NONE);
+          new PrintWriter(System.out), new PrintWriter(System.err), EnumSet.noneOf(Resource.class));
 
       Path inputFile = tempDir.resolve("input.txt");
       Files.writeString(inputFile, "test input content");

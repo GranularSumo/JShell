@@ -1,7 +1,6 @@
 package org.example.evaluator;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -13,7 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 import java.util.List;
 
-import org.example.evaluator.IoContext.Owns;
+import org.example.evaluator.IoContext.Resource;
 import org.example.parser.Redirect;
 
 public class RedirectHandler {
@@ -26,48 +25,52 @@ public class RedirectHandler {
     BufferedReader in = io.in();
     PrintWriter out = io.out();
     PrintWriter err = io.err();
-    EnumSet<Owns> owned = EnumSet.noneOf(Owns.class);
+    EnumSet<IoContext.Resource> ownedResources = EnumSet.noneOf(IoContext.Resource.class);
 
     for (Redirect r : redirects) {
       switch (r.type()) {
         case INPUT -> {
-          closeIfOwned(in, owned, Owns.IN);
-          in = new BufferedReader(new FileReader(r.target().content()));
-          owned.add(Owns.IN);
+          if (ownedResources.contains(Resource.IN)) {
+            in.close();
+          }
+          in = new BufferedReader(new FileReader(r.target()));
+          ownedResources.add(Resource.IN);
         }
         case OUTPUT, OUTPUT_APPEND -> {
-          closeIfOwned(out, owned, Owns.OUT);
+          if (ownedResources.contains(Resource.OUT)) {
+            out.close();
+          }
           out = createWriter(r);
-          owned.add(Owns.OUT);
+          ownedResources.add(Resource.OUT);
         }
         case ERROR, ERROR_APPEND -> {
-          closeIfOwned(err, owned, Owns.ERR);
+          if (ownedResources.contains(Resource.ERR)) {
+            err.close();
+          }
           err = createWriter(r);
-          owned.add(Owns.ERR);
+          ownedResources.add(Resource.ERR);
         }
         case ALL_OUTPUT, ALL_APPEND -> {
-          closeIfOwned(out, owned, Owns.OUT);
-          closeIfOwned(err, owned, Owns.ERR);
+          if (ownedResources.contains(Resource.OUT)) {
+            out.close();
+          }
+          if (ownedResources.contains(Resource.ERR)) {
+            err.close();
+          }
           PrintWriter pw = createWriter(r);
           out = err = pw;
-          owned.add(Owns.OUT);
-          owned.add(Owns.ERR);
+          ownedResources.add(Resource.OUT);
+          ownedResources.add(Resource.ERR);
         }
         default -> throw new IOException("Invalid RedirectType: " + r.type());
       }
     }
-    return new IoContext(in, out, err, Owns.from(owned));
+    return new IoContext(in, out, err, ownedResources);
   }
 
   private static PrintWriter createWriter(Redirect r) throws IOException {
     boolean append = r.isAppendMode();
-    return new PrintWriter(new FileWriter(r.target().content(), append), append);
-  }
-
-  private static void closeIfOwned(Closeable resource, EnumSet<Owns> owned, Owns owns) throws IOException {
-    if (owned.contains(owns)) {
-      resource.close();
-    }
+    return new PrintWriter(new FileWriter(r.target(), append), append);
   }
 
   public static void applyAllToProcess(List<Redirect> redirects, ProcessBuilder builder, IoContext io)
@@ -103,7 +106,7 @@ public class RedirectHandler {
   }
 
   private static File checkAndPrepareFile(Redirect r) throws IOException {
-    Path p = Path.of(r.target().content());
+    Path p = Path.of(r.target());
     switch (r.type()) {
       case INPUT: {
         return checkFileExistsAndReturn(p);

@@ -10,14 +10,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.example.evaluator.IoContext;
 import org.example.evaluator.RedirectHandler;
-import org.example.evaluator.IoContext.Owns;
+import org.example.evaluator.IoContext.Resource;
 import org.example.parser.Redirect;
 import org.example.parser.RedirectType;
-import org.example.parser.Word;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -27,8 +27,7 @@ class RedirectBuilderProcessTest {
   Path tempDir;
 
   private Redirect createRedirect(RedirectType type, String filename) {
-    Word target = new Word(filename);
-    return new Redirect(type, target);
+    return new Redirect(type, filename);
   }
 
   private ProcessBuilder createEchoCommand(String message) {
@@ -41,7 +40,7 @@ class RedirectBuilderProcessTest {
         new BufferedReader(new InputStreamReader(System.in)),
         new PrintWriter(System.out),
         new PrintWriter(System.err),
-        Owns.NONE);
+        EnumSet.noneOf(Resource.class));
   }
 
   @Test

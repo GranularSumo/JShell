@@ -4,11 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.EnumSet;
 
 import org.example.commands.Builtins;
 import org.example.evaluator.Evaluator;
 import org.example.evaluator.IoContext;
-import org.example.evaluator.IoContext.Owns;
 
 public class Shell {
 
@@ -24,7 +24,7 @@ public class Shell {
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     PrintWriter out = new PrintWriter(System.out);
     PrintWriter err = new PrintWriter(System.err);
-    IoContext stdIO = new IoContext(in, out, err, Owns.NONE);
+    IoContext stdIO = new IoContext(in, out, err, EnumSet.noneOf(IoContext.Resource.class));
     Shell shell = new Shell(new ShellContext(stdIO));
     shell.run();
   }
@@ -36,7 +36,6 @@ public class Shell {
         String input = readInput();
 
         if (input == null) {
-          ctx.shouldContinue();
           break;
         }
 
@@ -44,7 +43,7 @@ public class Shell {
           continue;
         }
 
-        evaluator.evaluate(input, ctx);
+        evaluator.evaluate(input);
       }
     } catch (IOException e) {
       ctx.err().println("I/O error: " + e.getMessage());

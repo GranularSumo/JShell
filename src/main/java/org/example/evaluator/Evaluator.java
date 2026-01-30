@@ -18,7 +18,7 @@ public class Evaluator {
     this.builtins = builtins;
   }
 
-  public CommandResult evaluate(String line, ShellContext ctx) throws IOException {
+  public CommandResult evaluate(String line) throws IOException {
     if (line.trim().isEmpty()) {
       return CommandResult.continueWith(0);
     }
@@ -26,16 +26,14 @@ public class Evaluator {
     try {
       Command cmd = Parser.parse(line);
 
-      if (builtins.isBuiltin(cmd.commandNameAsString())) {
-        executeBuiltin(cmd);
-      } else if (CommandUtils.getCommandFilepath(cmd.commandNameAsString()).isPresent()) {
-        executeExternal(cmd);
+      if (builtins.isBuiltin(cmd.commandName())) {
+        return executeBuiltin(cmd);
+      } else if (CommandUtils.getCommandFilepath(cmd.commandName()).isPresent()) {
+        return executeExternal(cmd);
       } else {
-        ctx.err().println(cmd.commandNameAsString() + ": command not found");
+        ctx.err().println(cmd.commandName() + ": command not found");
         return CommandResult.continueWith(127);
       }
-
-      return CommandResult.continueWith(0);
     } catch (ParseException e) {
       ctx.err().println(e.getMessage());
       ctx.err().flush();
@@ -46,7 +44,7 @@ public class Evaluator {
   public CommandResult executeBuiltin(Command cmd) throws IOException {
     IoContext context = RedirectHandler.applyAllToIoContext(cmd.redirects(), ctx.stdio());
     try {
-      return builtins.get(cmd.commandNameAsString()).execute(cmd.argsAsStrings(), ctx.withIo(context));
+      return builtins.get(cmd.commandName()).execute(cmd.args(), ctx.withIo(context));
     } finally {
       context.closeResources();
     }
@@ -54,12 +52,13 @@ public class Evaluator {
 
   public CommandResult executeExternal(Command cmd) throws IOException {
     try {
-      ProcessBuilder builder = new ProcessBuilder(cmd.fullCommandAsList()).directory(new File(ctx.getCwd().toString()));
+      ProcessBuilder builder = new ProcessBuilder(cmd.args())
+          .directory(new File(ctx.getCwd().toString()));
       RedirectHandler.applyAllToProcess(cmd.redirects(), builder, ctx.stdio());
       return CommandResult.continueWith(builder.start().waitFor());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      ctx.err().println(cmd.commandNameAsString() + ": interrupted");
+      ctx.err().println(cmd.commandName() + ": interrupted");
       return CommandResult.continueWith(130);
     }
   }
